@@ -1,6 +1,12 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import { Clock, Users, Timer } from 'lucide-react';
+import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
@@ -15,7 +21,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-function App() {
+export default function App() {
   return (
     <AuthProvider>
       <Router>
@@ -48,9 +54,8 @@ function App() {
             />
           </Routes>
         </div>
+        <Toaster position="top-right" />
       </Router>
     </AuthProvider>
   );
 }
-
-export default App;

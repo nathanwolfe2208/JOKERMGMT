@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { Play, Store, Timer } from 'lucide-react';
+import { Play, Timer, Ban } from 'lucide-react';
 import Layout from '../components/Layout';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 interface PlaySession {
   id: string;
   user_id: string;
-  profile: {
+  profile?: {
     full_name: string;
   };
   start_time: string;
@@ -40,7 +40,14 @@ export default function PlaySessions() {
         .order('start_time', { ascending: false });
 
       if (error) throw error;
-      setSessions(data || []);
+
+      // Since profile is an object, we can directly use it
+      const formattedSessions = data.map((session: any) => ({
+        ...session,
+        profile: session.profile || undefined, // Use the profile directly
+      }));
+
+      setSessions(formattedSessions);
     } catch (error) {
       console.error('Error fetching sessions:', error);
     } finally {
@@ -111,7 +118,7 @@ export default function PlaySessions() {
                       sessions.map((session) => (
                         <tr key={session.id}>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                            {session.profile.full_name}
+                            {session.profile?.full_name}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             {format(new Date(session.start_time), 'MMM d, yyyy HH:mm')}
@@ -140,8 +147,7 @@ export default function PlaySessions() {
                           {isAdmin && !session.end_time && (
                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                               <button className="inline-flex items-center text-red-600 hover:text-red-900">
-                                <Store className="h-4 w-4 mr-1" />
-                                End Session
+                                <Ban className='h-6 w-6'/>
                               </button>
                             </td>
                           )}

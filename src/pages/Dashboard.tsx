@@ -1,35 +1,99 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { Users, Clock, Timer } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 export default function Dashboard() {
   const { isAdmin } = useAuth();
 
+  const [activeMembersCount, setActiveMembersCount] = useState(0);
+  const [activeSessionsCount, setActiveSessionsCount] = useState(0);
+  const [totalHoursToday, setTotalHoursToday] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const stats = [
     {
       name: 'Active Members',
-      value: '...',
+      value: activeMembersCount,
       icon: Users,
       href: '/members',
       color: 'bg-blue-500',
     },
     {
       name: 'Active Sessions',
-      value: '...',
+      value: activeSessionsCount,
       icon: Timer,
       href: '/play-sessions',
       color: 'bg-green-500',
     },
     {
       name: 'Total Hours Today',
-      value: '...',
+      value: totalHoursToday,
       icon: Clock,
       href: '/play-sessions',
       color: 'bg-purple-500',
     },
   ];
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      if(loading) return;
+      let loadingToast;
+      try {
+        setLoading(true);
+        loadingToast = toast.loading("loading..");
+        
+        // Fetch active members count
+        const { count: activeMembers, error: membersError } = await supabase
+          .from('memberships')
+          .select('*', { count: 'exact' })
+          .eq('status', 'active'); // Adjust the status as needed
+
+        if (membersError) throw membersError;
+
+        setActiveMembersCount(activeMembers ?? 0);
+
+        // Fetch active sessions count
+        const { count: activeSessions, error: sessionsError } = await supabase
+          .from('play_sessions') // Replace with your actual sessions table name
+          .select('*', { count: 'exact' })
+          .is('end_time', null); // Adjust the status as needed
+
+        if (sessionsError) throw sessionsError;
+
+        setActiveSessionsCount(activeSessions ?? 0);
+
+        
+        const { data: hoursData, error: hoursError } = await supabase
+          .from('play_sessions') // Replace with your actual sessions table name
+          .select('minutes_used');
+
+        if (hoursError) throw hoursError;
+        console.log(hoursData);
+        const totalHours = hoursData.reduce((acc, ses) => {
+          const minutes = ses.minutes_used + 0;
+          return acc + minutes / 60;
+
+        }, 0)
+        setTotalHoursToday(totalHours);
+      } catch (err: any) {
+        console.error('Error fetching counts:', err);
+        setError(err.message);
+        toast.error(error);
+      } finally {
+        setLoading(false);
+        toast.dismiss(loadingToast);
+      }
+    };
+
+    fetchCounts();
+  }, []);
+
+
 
   return (
     <Layout>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { KeyRound } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -19,18 +20,19 @@ export default function Login() {
     try {
       setError('');
       setLoading(true);
-      
+
       if (isSignUp) {
         // Sign up with Supabase Auth
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
+        const { data: authData, error: signUpError } =
+          await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                full_name: fullName,
+              },
             },
-          },
-        });
+          });
 
         if (signUpError) throw signUpError;
 
@@ -44,7 +46,7 @@ export default function Login() {
       }
     } catch (err) {
       console.error('Auth error:', err);
-      setError(isSignUp ? 'Failed to create account' : 'Failed to sign in');
+      toast.error(isSignUp ? 'Failed to create account' : 'Failed to sign in');
     } finally {
       setLoading(false);
     }
@@ -61,25 +63,31 @@ export default function Login() {
             Poker Club Manager
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            {isSignUp ? 'Create your account' : 'Sign in to access the management system'}
+            {isSignUp
+              ? 'Create your account'
+              : 'Sign in to access the management system'}
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className={`border-l-4 p-4 ${
-              error.includes('created') 
-                ? 'bg-green-50 border-green-400 text-green-700'
-                : 'bg-red-50 border-red-400 text-red-700'
-            }`}>
+            <div
+              className={`border-l-4 p-4 ${
+                error.includes('created')
+                  ? 'bg-green-50 border-green-400 text-green-700'
+                  : 'bg-red-50 border-red-400 text-red-700'
+              }`}
+            >
               <p>{error}</p>
             </div>
           )}
-          
+
           <div className="rounded-md shadow-sm -space-y-px">
             {isSignUp && (
               <div>
-                <label htmlFor="fullName" className="sr-only">Full Name</label>
+                <label htmlFor="fullName" className="sr-only">
+                  Full Name
+                </label>
                 <input
                   id="fullName"
                   name="fullName"
@@ -93,7 +101,9 @@ export default function Login() {
               </div>
             )}
             <div>
-              <label htmlFor="email" className="sr-only">Email address</label>
+              <label htmlFor="email" className="sr-only">
+                Email address
+              </label>
               <input
                 id="email"
                 name="email"
@@ -108,7 +118,9 @@ export default function Login() {
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">Password</label>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
               <input
                 id="password"
                 name="password"
@@ -128,7 +140,13 @@ export default function Login() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {loading ? (isSignUp ? 'Creating account...' : 'Signing in...') : (isSignUp ? 'Create Account' : 'Sign in')}
+              {loading
+                ? isSignUp
+                  ? 'Creating account...'
+                  : 'Signing in...'
+                : isSignUp
+                ? 'Create Account'
+                : 'Sign in'}
             </button>
           </div>
 
@@ -142,7 +160,9 @@ export default function Login() {
               }}
               className="text-sm text-blue-600 hover:text-blue-500"
             >
-              {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
+              {isSignUp
+                ? 'Already have an account? Sign in'
+                : 'Need an account? Sign up'}
             </button>
           </div>
         </form>
